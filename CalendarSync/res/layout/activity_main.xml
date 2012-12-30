@@ -4,13 +4,44 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity" >
 
-    <ListView
-        android:id="@+id/eventList"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/text_cal_a"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true" >
+        android:layout_alignParentTop="true"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Calender A" />
+    
+    <TextView
+        android:id="@+id/text_cal_b"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Calendar B" />
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/text_cal_a" >
 
-    </ListView>
+        <ListView
+            android:id="@+id/calendar_a"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" 
+            android:layout_weight="50" >
+            
+        </ListView>
+
+        <ListView
+            android:id="@+id/calendar_b"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="50" >
+        </ListView>
+    </LinearLayout>
+
 
 </RelativeLayout>
