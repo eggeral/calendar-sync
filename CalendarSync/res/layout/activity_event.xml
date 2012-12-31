@@ -4,11 +4,33 @@
     android:layout_height="match_parent"
     tools:context=".EventActivity" >
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:text="@string/hello_world" />
+     <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:layout_below="@+id/add_button" >
+
+        <ListView
+            android:id="@+id/event_a"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" 
+            android:layout_weight="50" >
+            
+        </ListView>
+
+        <ListView
+            android:id="@+id/event_b"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="50" >
+        </ListView>
+    </LinearLayout>
+
+     <Button
+         android:id="@+id/add_button"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignParentLeft="true"
+         android:layout_alignParentTop="true"
+         android:text="Add" />
 
 </RelativeLayout>

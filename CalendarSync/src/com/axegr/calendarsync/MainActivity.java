@@ -18,6 +18,7 @@ import android.provider.CalendarContract.Events;
 import android.app.Activity;
 import android.app.Service;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.util.Log;
 import android.view.Menu;
@@ -72,7 +73,7 @@ public class MainActivity extends Activity {
 		cur.moveToFirst();
 		calA.setText(cur.getString(CAL_PROJECTION_NAME) + " "
 				+ cur.getString(CAL_PROJECTION_LOCATION));
-		
+
 		selectionArgs = new String[] { "11" };
 		cur = cr.query(uri, CAL_PROJECTION, selection, selectionArgs, null);
 		calendars = getColumns(cur, CAL_PROJECTION);
@@ -110,31 +111,26 @@ public class MainActivity extends Activity {
 				R.layout.list_item, from, to);
 
 		listViewA.setAdapter(adapterA);
-		listViewA.setOnItemClickListener(getEventItemClickListener(valuesA));
+		listViewA.setOnItemClickListener(getEventItemClickListener(valuesA,"11","1"));
 
 		listViewB.setAdapter(adapterB);
-		listViewB.setOnItemClickListener(getEventItemClickListener(valuesB));
+		listViewB.setOnItemClickListener(getEventItemClickListener(valuesB,"1","11"));
 
 	}
 
 	private OnItemClickListener getEventItemClickListener(
-			final List<Map<String, String>> values) {
+			final List<Map<String, String>> values, final String calendarId, final String targetCalendarId) {
 		return new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				ContentResolver cr = getContentResolver();
-				Uri uri = Events.CONTENT_URI;
-				String selection = Events._ID + " = ?";
-				String[] selectionArgs = new String[] { values.get(position).get("id") };
-				Cursor cur = cr.query(uri, null, selection,
-						selectionArgs, null);
-				cur.moveToFirst();
-				for (int i = 0; i < cur.getColumnCount(); i++) {
-					Log.i(TAG,
-							cur.getColumnName(i) + ": " + cur.getString(i));
-				}
-
+					int position, long id) {							
+				Intent intent = new Intent(MainActivity.this,
+						EventActivity.class);
+				intent.putExtra("event_id", Long.parseLong(values.get(position)
+						.get("id")));
+				intent.putExtra("calendar_id", calendarId);
+				intent.putExtra("target_calendar_id", targetCalendarId);
+				startActivity(intent);
 			}
 		};
 	}
