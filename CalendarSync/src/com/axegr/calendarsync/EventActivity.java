@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.provider.CalendarContract.Events;
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.Log;
@@ -29,7 +30,7 @@ public class EventActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		long eventId = getIntent().getLongExtra("event_id", -1);
+		final long eventId = getIntent().getLongExtra("event_id", -1);
 		final String calendarId = getIntent().getStringExtra("calendar_id");
 		final String targetCalendarId = getIntent().getStringExtra("target_calendar_id");
 		
@@ -74,7 +75,7 @@ public class EventActivity extends Activity {
 			
 			@Override
 			public void onClick(View v) {
-				Log.i(TAG, "CLICK " + calendarId + ", target: " + targetCalendarId);
+				Log.i(TAG, "Add " + calendarId + ", target: " + targetCalendarId);
 				ContentResolver cr = getContentResolver();
 				ContentValues values = new ContentValues();
 				copyColumn(cur, values, Events.DTSTART);
@@ -97,6 +98,20 @@ public class EventActivity extends Activity {
 				values.put(column, cur.getString(cur.getColumnIndex(column)));
 			}
 		});
+
+	
+		Button deleteButton = (Button) findViewById(R.id.delete_button);
+		deleteButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Log.i(TAG, "Delete " + calendarId + ", event: " + eventId);
+				Uri deleteUri = ContentUris.withAppendedId(Events.CONTENT_URI, eventId);
+				getContentResolver().delete(deleteUri, null, null);				
+			}
+		
+		});
+
 	}
 
 	@Override
