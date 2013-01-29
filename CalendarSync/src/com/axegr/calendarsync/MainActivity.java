@@ -4,32 +4,27 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Events;
-import android.app.Activity;
-import android.app.Service;
-import android.content.ContentResolver;
-import android.content.Intent;
-import android.database.Cursor;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -52,82 +47,99 @@ public class MainActivity extends Activity {
 
 	private static final String TAG = "calsync";
 
+	private static final String calenderAId = "1";
+	private static final String calenderBId = "11";
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		Cursor cur = null;
-		ContentResolver cr = getContentResolver();
-		Uri uri = Calendars.CONTENT_URI;
-		cur = cr.query(uri, CAL_PROJECTION, null, null, null);
-		List<String[]> calendars = getColumns(cur, CAL_PROJECTION);
-		Log.i(TAG, "Print calendars");
-		print("calendars", calendars);
+		Button refreshButton = (Button) findViewById(R.id.button_refresh);
+		refreshButton.setOnClickListener(new OnClickListener() {
 
-		String selection = Calendars._ID + " = ?";
-		String[] selectionArgs = new String[] { "1" };
-		cur = cr.query(uri, CAL_PROJECTION, selection, selectionArgs, null);
-		calendars = getColumns(cur, CAL_PROJECTION);
-		TextView calA = (TextView) findViewById(R.id.text_cal_a);
-		cur.moveToFirst();
-		calA.setText(cur.getString(CAL_PROJECTION_NAME) + " "
-				+ cur.getString(CAL_PROJECTION_LOCATION));
+			@Override
+			public void onClick(View v) {
+				refreshEvents();
+			}
+		});
+		refreshEvents();
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		refreshEvents();
+	}
 
-		selectionArgs = new String[] { "11" };
-		cur = cr.query(uri, CAL_PROJECTION, selection, selectionArgs, null);
-		calendars = getColumns(cur, CAL_PROJECTION);
-		TextView calB = (TextView) findViewById(R.id.text_cal_b);
-		cur.moveToFirst();
-		calB.setText(cur.getString(CAL_PROJECTION_NAME) + " "
-				+ cur.getString(CAL_PROJECTION_LOCATION));
+	private void refreshEvents() {
+		printCalendarsToLog();
 
-		uri = Events.CONTENT_URI;
-		selection = Events.CALENDAR_ID + " = ?";
-		selectionArgs = new String[] { "1" };
-		String order = Events.DTSTART;
-		cur = cr.query(uri, EVENT_PROJECTION, selection, selectionArgs, order);
-		List<String[]> cal1Events = getColumns(cur, EVENT_PROJECTION);
-		print("cal 1 event", cal1Events);
-
-		selectionArgs = new String[] { "11" };
-		cur = cr.query(uri, EVENT_PROJECTION, selection, selectionArgs, order);
-		List<String[]> cal11Events = getColumns(cur, EVENT_PROJECTION);
-		print("cal 11 event", cal11Events);
+		setCalendarName(calenderAId, (TextView) findViewById(R.id.text_cal_a));
+		setCalendarName(calenderBId, (TextView) findViewById(R.id.text_cal_b));
 
 		ListView listViewA = (ListView) findViewById(R.id.calendar_a);
 		ListView listViewB = (ListView) findViewById(R.id.calendar_b);
 
-		List<Map<String, String>> valuesA = getValues(cal11Events);
-		List<Map<String, String>> valuesB = getValues(cal1Events);
+		List<Map<String, String>> valuesA = setCalendarEvents(calenderAId, listViewA);
+		List<Map<String, String>> valuesB = setCalendarEvents(calenderBId, listViewB);
 
+		listViewA.setOnItemClickListener(getEventItemClickListener(valuesA,
+				calenderAId, calenderBId));
+		listViewB.setOnItemClickListener(getEventItemClickListener(valuesB,
+				calenderAId, calenderBId));
+	}
+
+	private void printCalendarsToLog() {
+		Cursor cur = getContentResolver().query(Calendars.CONTENT_URI,
+				CAL_PROJECTION, null, null, null);
+		List<String[]> calendars = getColumns(cur, CAL_PROJECTION);
+		Log.i(TAG, "Print calendars");
+		print("calendars", calendars);
+	}
+
+	private List<Map<String, String>> setCalendarEvents(String calendarId,
+			ListView eventsListView) {
+		String[] selectionArgs = new String[] { calendarId };
+		Uri uri = Events.CONTENT_URI;
+		String selection = Events.CALENDAR_ID + " = ? AND original_id is null AND deleted = 0";
+		String order = Events.DTSTART;
+		Cursor cur = getContentResolver().query(uri, EVENT_PROJECTION,
+				selection, selectionArgs, order);
+		List<String[]> calEvents = getColumns(cur, EVENT_PROJECTION);
+		print(calendarId + ": ", calEvents);
+		List<Map<String, String>> values = getValues(calEvents);
 		String[] from = new String[] { "title", "dtstart" };
 		int[] to = new int[] { R.id.item1, R.id.item2 };
 
-		SimpleAdapter adapterA = new SimpleAdapter(this, valuesA,
+		SimpleAdapter adapter = new SimpleAdapter(this, values,
 				R.layout.list_item, from, to);
+		eventsListView.setAdapter(adapter);
+		return values;
+	}
 
-		SimpleAdapter adapterB = new SimpleAdapter(this, valuesB,
-				R.layout.list_item, from, to);
+	private void setCalendarName(String calendarId, TextView calTextView) {
+		String selection = Calendars._ID + " = ?";
+		String[] selectionArgs = new String[] { calendarId };
 
-		listViewA.setAdapter(adapterA);
-		listViewA.setOnItemClickListener(getEventItemClickListener(valuesA,"11","1"));
+		Cursor cur = getContentResolver().query(Calendars.CONTENT_URI,
+				CAL_PROJECTION, selection, selectionArgs, null);
+		cur.moveToFirst();
 
-		listViewB.setAdapter(adapterB);
-		listViewB.setOnItemClickListener(getEventItemClickListener(valuesB,"1","11"));
-
+		calTextView.setText(cur.getString(CAL_PROJECTION_NAME) + " "
+				+ cur.getString(CAL_PROJECTION_LOCATION));
 	}
 
 	private OnItemClickListener getEventItemClickListener(
-			final List<Map<String, String>> values, final String calendarId, final String targetCalendarId) {
+			final List<Map<String, String>> values, final String calendarId,
+			final String targetCalendarId) {
 		return new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {							
+					int position, long id) {
 				Intent intent = new Intent(MainActivity.this,
 						EventActivity.class);
-				intent.putExtra("event_id", Long.parseLong(values.get(position)
-						.get("id")));
+				intent.putExtra("event_id",
+						Long.parseLong(values.get(position).get("id")));
 				intent.putExtra("calendar_id", calendarId);
 				intent.putExtra("target_calendar_id", targetCalendarId);
 				startActivity(intent);
