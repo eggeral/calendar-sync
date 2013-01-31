@@ -5,24 +5,44 @@
     android:orientation="horizontal" >
 
     <TextView
-        android:id="@+id/item1"
+        android:id="@+id/idA"
         android:layout_width="168dp"
         android:layout_height="fill_parent"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:width="20dip" />
 
     <TextView
-        android:id="@+id/item2"
+        android:id="@+id/titleA"
         android:layout_width="168dp"
         android:layout_height="fill_parent"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:width="20dip" />
 
     <TextView
-        android:id="@+id/item3"
+        android:id="@+id/dtStartA"
         android:layout_width="168dp"
         android:layout_height="fill_parent"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:width="20dip" />
 
+    <TextView
+        android:id="@+id/idB"
+        android:layout_width="168dp"
+        android:layout_height="fill_parent"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:width="20dip" />
+
+    <TextView
+        android:id="@+id/titleB"
+        android:layout_width="168dp"
+        android:layout_height="fill_parent"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:width="20dip" />
+
+    <TextView
+        android:id="@+id/dtStartB"
+        android:layout_width="168dp"
+        android:layout_height="fill_parent"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:width="20dip" />
 </LinearLayout>

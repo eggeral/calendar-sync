@@ -10,19 +10,13 @@
          android:layout_below="@+id/add_button" >
 
         <ListView
-            android:id="@+id/event_a"
+            android:id="@+id/event_properties"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" 
             android:layout_weight="50" >
             
         </ListView>
 
-        <ListView
-            android:id="@+id/event_b"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="50" >
-        </ListView>
     </LinearLayout>
 
      <Button
@@ -40,5 +34,13 @@
          android:layout_alignParentTop="true"
          android:layout_toRightOf="@+id/add_button"
          android:text="Delete" />
+     
+     <Button
+         android:id="@+id/find_button"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignParentTop="true"
+         android:layout_toRightOf="@+id/delete_button"
+         android:text="Find" />
 
 </RelativeLayout>

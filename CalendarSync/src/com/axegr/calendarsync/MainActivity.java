@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
 		});
 		refreshEvents();
 	}
-	
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		refreshEvents();
@@ -77,15 +77,62 @@ public class MainActivity extends Activity {
 		setCalendarName(calenderAId, (TextView) findViewById(R.id.text_cal_a));
 		setCalendarName(calenderBId, (TextView) findViewById(R.id.text_cal_b));
 
-		ListView listViewA = (ListView) findViewById(R.id.calendar_a);
-		ListView listViewB = (ListView) findViewById(R.id.calendar_b);
+		Uri uri = Events.CONTENT_URI;
+		String selection = Events.CALENDAR_ID
+				+ " = ? AND original_id is null AND deleted = 0";
+		String order = Events.DTSTART;
+		String[] selectionArgsA = new String[] { calenderAId };
+		Cursor curA = getContentResolver().query(uri, EVENT_PROJECTION,
+				selection, selectionArgsA, order);
 
-		List<Map<String, String>> valuesA = setCalendarEvents(calenderAId, listViewA);
-		List<Map<String, String>> valuesB = setCalendarEvents(calenderBId, listViewB);
+		String[] selectionArgsB = new String[] { calenderBId };
+		Cursor curB = getContentResolver().query(uri, EVENT_PROJECTION,
+				selection, selectionArgsB, order);
 
-		listViewA.setOnItemClickListener(getEventItemClickListener(valuesA,
-				calenderAId, calenderBId));
-		listViewB.setOnItemClickListener(getEventItemClickListener(valuesB,
+		curA.moveToNext();
+		curB.moveToNext();
+		long dtStartA = -1;
+		long dtStartB = -1;
+
+		List<Map<String, String>> listEntries = new ArrayList<Map<String, String>>();
+
+		while (!curA.isAfterLast() && !curB.isAfterLast()) {
+			Map<String, String> entry = new HashMap<String, String>();
+			if (!curA.isAfterLast()) {
+				dtStartA = curA.getLong(PROJECTION_DTSTART);
+			}
+
+			if (!curB.isAfterLast()) {
+				dtStartB = curB.getLong(PROJECTION_DTSTART);
+			}
+
+			if (dtStartA > dtStartB) {
+				Log.i(TAG, "B: " + dtStartB);
+				entry.put("idB", curB.getString(PROJECTION_ID_INDEX));
+				entry.put("titleB", curB.getString(PROJECTION_TITLE));
+				entry.put("dtStartB", curB.getString(PROJECTION_DTSTART));
+				curB.moveToNext();
+			} else {
+				Log.i(TAG, "A: " + dtStartA);
+				entry.put("idA", curA.getString(PROJECTION_ID_INDEX));
+				entry.put("titleA", curA.getString(PROJECTION_TITLE));
+				entry.put("dtStartA", curA.getString(PROJECTION_DTSTART));
+				curA.moveToNext();
+			}
+			listEntries.add(entry);
+		}
+
+		ListView listViewA = (ListView) findViewById(R.id.eventlist);
+		String[] from = new String[] { "idA", "titleA", "dtStartA", "idB",
+				"titleB", "dtStartB" };
+		int[] to = new int[] { R.id.idA, R.id.titleA, R.id.dtStartA, R.id.idB,
+				R.id.titleB, R.id.dtStartB };
+
+		SimpleAdapter adapter = new SimpleAdapter(this, listEntries,
+				R.layout.events_list_item, from, to);
+		listViewA.setAdapter(adapter);
+
+		listViewA.setOnItemClickListener(getEventItemClickListener(listEntries,
 				calenderAId, calenderBId));
 	}
 
@@ -97,26 +144,22 @@ public class MainActivity extends Activity {
 		print("calendars", calendars);
 	}
 
-	private List<Map<String, String>> setCalendarEvents(String calendarId,
-			ListView eventsListView) {
-		String[] selectionArgs = new String[] { calendarId };
-		Uri uri = Events.CONTENT_URI;
-		String selection = Events.CALENDAR_ID + " = ? AND original_id is null AND deleted = 0";
-		String order = Events.DTSTART;
-		Cursor cur = getContentResolver().query(uri, EVENT_PROJECTION,
-				selection, selectionArgs, order);
-		List<String[]> calEvents = getColumns(cur, EVENT_PROJECTION);
-		print(calendarId + ": ", calEvents);
-		List<Map<String, String>> values = getValues(calEvents);
-		String[] from = new String[] { "title", "dtstart" };
-		int[] to = new int[] { R.id.item1, R.id.item2 };
-
-		SimpleAdapter adapter = new SimpleAdapter(this, values,
-				R.layout.list_item, from, to);
-		eventsListView.setAdapter(adapter);
-		return values;
-	}
-
+	/*
+	 * private List<Map<String, String>> setCalendarEvents(String calendarId,
+	 * ListView eventsListView) { String[] selectionArgs = new String[] {
+	 * calendarId }; Uri uri = Events.CONTENT_URI; String selection =
+	 * Events.CALENDAR_ID + " = ? AND original_id is null AND deleted = 0";
+	 * String order = Events.DTSTART; Cursor cur =
+	 * getContentResolver().query(uri, EVENT_PROJECTION, selection,
+	 * selectionArgs, order); List<String[]> calEvents = getColumns(cur,
+	 * EVENT_PROJECTION); print(calendarId + ": ", calEvents); List<Map<String,
+	 * String>> values = getValues(calEvents); String[] from = new String[] {
+	 * "title", "dtstart" }; int[] to = new int[] { R.id.item1, R.id.item2 };
+	 * 
+	 * SimpleAdapter adapter = new SimpleAdapter(this, values,
+	 * R.layout.list_item, from, to); eventsListView.setAdapter(adapter); return
+	 * values; }
+	 */
 	private void setCalendarName(String calendarId, TextView calTextView) {
 		String selection = Calendars._ID + " = ?";
 		String[] selectionArgs = new String[] { calendarId };
@@ -138,10 +181,10 @@ public class MainActivity extends Activity {
 					int position, long id) {
 				Intent intent = new Intent(MainActivity.this,
 						EventActivity.class);
-				intent.putExtra("event_id",
-						Long.parseLong(values.get(position).get("id")));
-				intent.putExtra("calendar_id", calendarId);
-				intent.putExtra("target_calendar_id", targetCalendarId);
+				intent.putExtra("idA",values.get(position).get("idA"));
+				intent.putExtra("idB",values.get(position).get("idB"));
+				intent.putExtra("calenderIdA", calendarId);
+				intent.putExtra("calenderIdB", targetCalendarId);
 				startActivity(intent);
 			}
 		};

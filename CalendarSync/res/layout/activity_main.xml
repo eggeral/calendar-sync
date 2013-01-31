@@ -11,18 +11,11 @@
         android:layout_below="@+id/text_cal_a" >
 
         <ListView
-            android:id="@+id/calendar_a"
+            android:id="@+id/eventlist"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="50" >
+            android:layout_height="wrap_content" >
         </ListView>
 
-        <ListView
-            android:id="@+id/calendar_b"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="50" >
-        </ListView>
     </LinearLayout>
 
     <Button
